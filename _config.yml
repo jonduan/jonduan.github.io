@@ -1,2 +1,5 @@
 markdown: rdiscount 
 
+permalink: /:year/:month/:title/
+url: http://jonduan.github.io
+pygments: true
