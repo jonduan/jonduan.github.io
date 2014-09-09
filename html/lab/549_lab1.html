@@ -867,18 +867,75 @@
 <div class="contents col-xs-12 col-md-10">
 <h1>549 lab1</h1>
 <p>ECON 549 Write a program in R that allows one to calculate the monthly mortgage payment given a certain interest rate, loan amount (i.e., mortgage) and amortization period. Assume the interest rate is compounded semi-annually. Using the program, calculate the monthly pension one would get if she had $1 million in a retirement fund at age 65, plans to live 25 years, and assumes a real rate of interest of 2.5% compounded semi-annually.</p>
+<h2>Find the right EAR (effective annual rate), then transfor to monthly rate.</h2>
+<p><a href="http://www.yorku.ca/amarshal/mortgage.htm">A Guide to Mortgage Interest Calculations in Canada</a></p>
+<p>a real rate of interest of 2.5% compounded semi-annually, then the nominal annualy rate will be 5% and annualy EAR (effective annual rate) will be</p>
+<p><br /><span class="math"><em>r</em> = (1 + .025)<sup>2</sup> − 1</span><br /></p>
+<p>This is the wierd way to calculate interest rate in Canada. You can check it out. We think it has it's historical story.</p>
+<div class="row">
+<button class="source R toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> R source
+</button><pre style=""><code class="source r">(r = (1 +.025)^2 -1)</code></pre><button class="output R toggle btn btn-xs btn-success">
+<span class="glyphicon glyphicon-chevron-down"></span> R output
+</button><pre style=""><code class="output r">## [1] 0.050625
+</code></pre>
+</div>
+<p>Then the monthly rate will be</p>
+<p><br /><span class="math">(1 + <em>r</em><em>M</em>)<sup>12</sup> − 1 = <em>r</em></span><br /></p>
+<div class="row">
+<button class="source R toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> R source
+</button><pre style=""><code class="source r">(rM = (1+r)^(1/12)-1)</code></pre><button class="output R toggle btn btn-xs btn-success">
+<span class="glyphicon glyphicon-chevron-down"></span> R output
+</button><pre style=""><code class="output r">## [1] 0.004123915
+</code></pre>
+</div>
+<p>Which should equivelent to</p>
+<p><br /><span class="math">(1 + <em>r</em><em>M</em>)<sup>6</sup> − 1 = 0.025</span><br /></p>
+<div class="row">
+<button class="source R toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> R source
+</button><pre style=""><code class="source r">(rM2 = (1+ 0.025)^(1/6) - 1)</code></pre><button class="output R toggle btn btn-xs btn-success">
+<span class="glyphicon glyphicon-chevron-down"></span> R output
+</button><pre style=""><code class="output r">## [1] 0.004123915
+</code></pre>
+</div>
+<p><a href="http://www.yorku.ca/amarshal/mortgage.htm">A Guide to Mortgage Interest Calculations in Canada</a> provide a excel file which has the same formula.</p>
+<p><a href="http://www.yorku.ca/amarshal/CMTGMONT.xls">Monthly Payment Mortgage Calculator - With Amortization Table</a></p>
+<p><br /><span class="math">0.0041239</span><br /> is the monthly compounded interest rate.</p>
+<h2>Calculate the present value of the cash flow in the future.</h2>
+<p><br /><span class="math">1<em>m</em><em>i</em><em>l</em><em>l</em><em>i</em><em>o</em> = <em>M</em>/<em>r</em><em>M</em> − (<em>M</em>/<em>r</em><em>M</em>)/((1 + <em>r</em><em>M</em>)<sup>25 * 12</sup>)</span><br /></p>
+<p>Where <span class="math"><em>M</em></span> is the monthly pension, <span class="math"><em>M</em>/<em>r</em><em>M</em></span> the present value in infinite time period, and <span class="math">(<em>M</em>/<em>r</em><em>M</em>)/(1 + <em>r</em><em>M</em>)<sup>25 * 12</sup></span> is the present value of all the cash flow after 25 years.</p>
+<p>Then the</p>
+<p><br /><span class="math"><em>M</em> = (1000000/(1 − 1/((1 + <em>r</em><em>M</em>)<sup>25 * 12</sup>))) * <em>r</em><em>M</em></span><br /></p>
+<p><a href="http://www.yorku.ca/amarshal/mortgage.htm">A Guide to Mortgage Interest Calculations in Canada</a> provide a excel file which has the same formula.</p>
+<p><a href="http://www.yorku.ca/amarshal/CMTGMONT.xls">Monthly Payment Mortgage Calculator - With Amortization Table</a></p>
+<div class="row">
+<button class="source R toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> R source
+</button><pre style=""><code class="source r">(M =  (1000000* rM/ ( 1 - 1/((1+rM)^{25*12}) ) ) )</code></pre><button class="output R toggle btn btn-xs btn-success">
+<span class="glyphicon glyphicon-chevron-down"></span> R output
+</button><pre style=""><code class="output r">## [1] 5816.05
+</code></pre>
+</div>
+<p>The answer is <strong>5816.0498504</strong> dollar per month.</p>
+<h2>Check the answer</h2>
+<p>We get the same answer from CIBC bank web calculator</p>
+<p>https://www.cibc.com/ca/mortgages/calculator/mortgage-payment.html?WT.mc_id=ExtPAID_campG-E-Mortgage_Calculator_kwdmortgage_calculator_for_adgrpMortgage_Rate_Calculator-Exact-E</p>
+<p>If we choose the interest rate as <code>2.5*2</code> annulay nominal interest rate on the web calculator, the result is <strong>5,816</strong>. It is compounded at <code>2.5%</code> semi-annually, but actually compound at monthly rate <strong>0.004123915</strong>.</p>
+<h1>Second Numerical Method</h1>
 <h2>Set up model</h2>
-<p>The real rate of interest of 2.5% is compounded semi-annually, so the rate of interest we use to calculate the interest is <code>1.25% semi-annually</code>.</p>
+<p>The real rate of interest of 2.5% is compounded semi-annually, so the rate of interest we use to calculate the interest is <code>.25 semi-annually</code>.</p>
 <h3>Set up the time interval</h3>
 <p>We can set the time interval is <code>half year</code>, then every time period, we draw <code>6 * monthly pension</code> and get the interest from the average principal during the time period <br /><span class="math">$$\frac{1}{2} * ( p_{t} + (p_{t} - 6*m ))$$</span><br />.</p>
 <p>Then the 25 years equal to 2*25 / <code>50 time period</code>.</p>
 <h3>How to calculate the interest</h3>
-<p>Since the principal decreases along the time path. To calculate the interest, we can average the principal during the time period and calculate with the interest rate of <code>1.25% semi-annually</code>.</p>
-<p><br /><span class="math">$$\frac{1}{2} * ( p_{t} + (p_{t} - 6*m )) * (0.0125)$$</span><br /></p>
+<p>Since the principal decreases along the time path. To calculate the interest, we can average the principal during the time period and calculate with the interest rate of <code>.25 semi-annually</code>.</p>
+<p><br /><span class="math">$$\frac{1}{2} * ( p_{t} + (p_{t} - 6*m )) * (0.025)$$</span><br /></p>
 <h3>The formula for the difference equation</h3>
-<p>Since it is a dynamic process, we can use a difference equation to model this process. In the each time period, we take out <code>6*m</code> monthly pension, and get <span class="math">(<em>p</em><sub><em>t</em></sub> − 6 * <em>m</em>)</span> left. At the same time, we earn the interest <br /><span class="math">$$\frac{1}{2} * ( p_{t} + (p_{t} - 6*m )) * (0.0125)$$</span><br /> .</p>
+<p>Since it is a dynamic process, we can use a difference equation to model this process. In the each time period, we take out <code>6*m</code> monthly pension, and get <span class="math">(<em>p</em><sub><em>t</em></sub> − 6 * <em>m</em>)</span> left. At the same time, we earn the interest <br /><span class="math">$$\frac{1}{2} * ( p_{t} + (p_{t} - 6*m )) * (0.025)$$</span><br /> .</p>
 <p>The first difference equation to model this process will be:</p>
-<p><br /><span class="math">$$ p_{t+1} = (p_{t} - 6*m ) + \frac{1}{2} * ( p_{t} + (p_{t} - 6*m )) * (0.0125) $$</span><br /></p>
+<p><br /><span class="math">$$ p_{t+1} = (p_{t} - 6*m ) + \frac{1}{2} * ( p_{t} + (p_{t} - 6*m )) * (0.025) $$</span><br /></p>
 <p>where p is the principal, m is the monthly pension.</p>
 <p>We can use the numerical method to get the solution for the equation since we have <span class="math"><em>p</em><sub>50</sub> = 0</span></p>
 <h3>The R program for the difference equation</h3>
@@ -898,14 +955,14 @@ while(p>0){
         p = 1000000
         for(i in 1:(2*25)){
                 principal[i]= p
-                p = (p - 6*m) + (( p+ (p - 6*m))/2) * (0.0125)  
+                p = (p - 6*m) + (( p+ (p - 6*m))/2) * (0.025)  
                 
         }
 m = m+1
 
 }</code></pre>
 </div>
-<p>The monthly pension is <strong>4476</strong> and the <strong>-12.9102291</strong> money left. It is not perfect solution since we use the numerical method to get the solution. There is a room to improve the solution.</p>
+<p>The monthly pension is <strong>5805</strong> and the <strong>-121.1795222</strong> money left. It is not perfect solution since we use the numerical method to get the solution. There is a room to improve the solution.</p>
 <h2>How the principal evolves during the time?</h2>
 <div class="row">
 <button class="source R toggle btn btn-xs btn-primary">
@@ -918,11 +975,15 @@ legend(x="topright", legend=c("principal", "Monthly pension"),
        lty=1, lwd=2, col=c("brown","green"))</code></pre>
 <div class="row">
 <div class="col-md-offset-3 col-md-6">
-<a href="#" class="thumbnail"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAfgAAAGwCAMAAABy/YdMAAAArlBMVEX9/v0AAAAAADkAAGUAOTkAOWUAOY8AZrUA/wA5AAA5ADk5AGU5OWU5OY85Zo85ZrU5j9plAABlADllAGVlOQBlOTllOY9lZgBlZjllZmVlZrVltf2POQCPOTmPOWWPZgCPZo+PjzmPj2WPtY+P27WP29qP2/2lKiq1ZgC1Zjm1tWW124+1/rW1/tq1/v3ajznaj2Xa24/a/rXa/tra/v39tWX924/9/rX9/tr9/v2LoHiJAAAAOnRSTlP///////////////////////////////////////////////////////////////////////////8AN8D/CgAAAAlwSFlzAAALEgAACxIB0t1+/AAAEQhJREFUeJztnQ1/27YRhyuls6q4WZWXde1kt1vTKmzTRktm0eL3/2IjwHeREkHiAAJ3/+fXxrYoHSE+OhAkQd1XGRDJV0s3ACwDxAsF4oUC8UKBeKFAvFAgXigQLxSIFwrECwXihQLxQoF4oUC8UCBeKBAvFIgXCsQLBeKFAvFCgXihQLxQIF4oEC8UiBfKYuKfX68U+zmvfPFp7DnpdrU+6N+SfXZ+GH/BcFTzB9t01tdbuX55076lWFr8auckelJ9otQvRuLNoRCfzPnEk7KgeLVBTiv177FM/fPDSv19flj/oBKieviU/1T5kaeJWqxemW/OP/Qf6jUv/nx991REPeqPkoqzUg/pXzb5kz9u9ZPrkHplZYhidb9eRu2vqmxHI/6ygXX76/VlrT+al//VtC9fcFIf/otQ1SZwx8Li9Uc/KVNfa1qpTa23S/Vw0TfcPTU/y6fkTovXfL0txRcv2fTEl0+u16QoH717Kp79pRc1b0lrVd31t9bWNLDTfr2+ZjWb1ttoxOe+87efCx4MVX2anbC0+Pydp0qb+uyn26ITzN/1RuV3+XD17LTUW9rY5dlx96Rfcyy3UbrVGaU3ZKerz5+sXt0JqR/NN3S5un7U/KX1g+p51bor8QMNrNtfrK9eTbvpna4+3W6Kd34RqmiTSwIQfyp29uvDqc5F1cnVDxfjAbXFVq3+Vyu+ezoV0ortqv8osqgrvn5yHbLa+R5Xu2J1F1F3dSPr5zXtKAT1Gthpf9Wm1h+tl1ftOz/kXc2mH6pok0uW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" alt="plot of chunk unnamed-chunk-1" /> </a>
+<a href="#" class="thumbnail"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAfgAAAGwCAMAAABy/YdMAAAArlBMVEX9/v0AAAAAADkAAGUAOTkAOWUAOY8AZrUA/wA5AAA5ADk5AGU5OWU5OY85Zo85ZrU5j9plAABlADllAGVlOQBlOTllOY9lZgBlZjllZmVlZrVltf2POQCPOTmPOWWPZgCPZo+PjzmPj2WPtY+P27WP29qP2/2lKiq1ZgC1Zjm1tWW124+1/rW1/tq1/v3ajznaj2Xa24/a/rXa/tra/v39tWX924/9/rX9/tr9/v2LoHiJAAAAOnRSTlP///////////////////////////////////////////////////////////////////////////8AN8D/CgAAAAlwSFlzAAALEgAACxIB0t1+/AAAEQNJREFUeJztnQ2f2jYShwvpLSXbXMnL9dpjt71rWkKbNlxyixd//y92kvyODcjWyJJm/s+vDQuYsfCDZMmWPV/lQCRfhS4ACAPECwXihQLxQoF4oUC8UCBeKBAvFIgXCsQLBeKFAvFCgXihQLxQIF4oEC8UiBcKxAsF4oUC8UKBeKFAvFAgXigQLxSIF0ow8c+vF5rtlE+++HRrmWy9WO7MX/ttfnq4/YHhqPYvtumsr7dy8/GmfKEILX6x8RJ9X/2i9B9W4u2hEL+f8osnJaB4vUGOC/3voaz6p4eFfn56WP6gK0T18lE96vqhqol+W39Sbc4/zBP9mRd/vr57KqIezE9Jx1nol8wfK7Xwx7VZuA5pVlaGKFb363nU/qrKcjTizwtYl79eX9560nz8r6Z86o2j/vGfhao2gT8Cizc//X1Z9Y2mhd7UZrtULxdtw91T81guopwWn/l6XYovPrLqiS8XrtekKV+9eyqW/tKLqkrSWlV3/a21NQXslN+sr1nNqvU1GvHKt/r6SvBgqOrX7IXQ4tU3z7Q2/dvP1kUjqL71Stfv8uVq6azUW9rYqNpx92Q+cyi3UbY2NcpsyE5TrxbWn+6ENK+qDV2urh9VfbR+US9XrbsSP1DAuvzF+urVtIveaeqz9ar45mehijL5JALxx2Jnv9wd67qoG7n65aI/oLfYotX+GsV3T8dCWrFdzZOiFnXF1wvXIaud72GxKVZ3FnVTF7JerilHIahXwE75qzK1nrQ+XpXv9KCamlU/VFEmn4QWv++I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" alt="plot of chunk unnamed-chunk-1" /> </a>
 </div>
 </div>
 </div>
-The graph shows the principal decrease smoothly, and the green line is the monthly pension.
+<p>The graph shows the principal decrease smoothly, and the green line is the monthly pension.</p>
+<h2>Check the answer</h2>
+<p>We get the different answer from CIBC bank web calculator, but it is very similar.</p>
+<p>https://www.cibc.com/ca/mortgages/calculator/mortgage-payment.html?WT.mc_id=ExtPAID_campG-E-Mortgage_Calculator_kwdmortgage_calculator_for_adgrpMortgage_Rate_Calculator-Exact-E</p>
+<p>Since we only calculate interest rate compounding in semi-annually <code>2.5%</code> which is equivalent to compounding in monthly rate <code>0.0041</code>.</p>
 </div>
 </div>
 <div class="navbar navbar-fixed-bottom navbar-inverse">
@@ -947,7 +1008,17 @@ Languages
 <li >
 <a href="#" type="all-source" class="toggle-global">All</a>
 </li></ul></li>
-
+<li class="dropup">
+<a href="#" class="dropdown-toggle" data-toggle="dropdown">Output <b class="caret"></b></a>
+<ul class="dropdown-menu"><li class="dropdown-header">
+Type
+</li>
+<li class="active">
+<a href="#" class="toggle-global output" type="output">output</a>
+</li>
+<li >
+<a href="#" type="all-output" class="toggle-global">All</a>
+</li></ul></li>
 <li class="active">
 <a href="#" type="figure" class="toggle-global">Figures</a>
 </li></ul>
