@@ -1,0 +1,962 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- jQuery -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+  
+  <!-- bootstrap -->
+  <!--<link href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet"  id="style">-->
+  <script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+  
+  <!-- highlight.js -->
+  <!--<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/7.3/styles/default.min.css" rel="stylesheet" id="code-style">-->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/7.3/highlight.min.js"></script>
+  <script>
+  hljs.LANGUAGES.r=function(a){var b="([a-zA-Z]|\\.[a-zA-Z.])[a-zA-Z0-9._]*";return{c:[a.HCM,{b:b,l:b,k:{keyword:"function if in break next repeat else for return switch while try tryCatch|10 stop warning require library attach detach source setMethod setGeneric setGroupGeneric setClass ...|10",literal:"NULL NA TRUE FALSE T F Inf NaN NA_integer_|10 NA_real_|10 NA_character_|10 NA_complex_|10"},r:0},{cN:"number",b:"0[xX][0-9a-fA-F]+[Li]?\\b",r:0},{cN:"number",b:"\\d+(?:[eE][+\\-]?\\d*)?L\\b",r:0},{cN:"number",b:"\\d+\\.(?!\\d)(?:i\\b)?",r:0},{cN:"number",b:"\\d+(?:\\.\\d*)?(?:[eE][+\\-]?\\d*)?i?\\b",r:0},{cN:"number",b:"\\.\\d+(?:[eE][+\\-]?\\d*)?i?\\b",r:0},{b:"`",e:"`",r:0},{cN:"string",b:'"',e:'"',c:[a.BE],r:0},{cN:"string",b:"'",e:"'",c:[a.BE],r:0}]}}(hljs); </script>
+  <!--<script type="text/javascript", src="https://yandex.st/highlightjs/7.3/languages/r.min.js"></script>-->
+  
+  <!-- Manific Popup -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/0.8.9/jquery.magnific-popup.min.js"></script>
+  
+  <script type="text/javascript"
+    src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+  </script>
+  <script defer="defer">
+  // Function to generate the dynamic table of contents
+  jQuery.fn.generate_TOC = function () {
+    var base = $(this[0]);
+  
+    var selectors = ['h1', 'h2', 'h3', 'h4'];
+  
+    var last_ptr = [{}, {}, {}, {}];
+  
+    var anchors = {};
+  
+    generate_anchor = function (text) {
+      var test = text.replace(/\W/g, '_');
+  
+      while(test in anchors){
+        //if no suffix, add one
+        if(test.match(/_\d+$/) === null){
+          test = test + "_2";
+        }
+        //else generate unique id for duplicates by adding one to the suffix
+        else {
+          test = test.replace(/_(\d+)$/, function(match, number){ var num=+number+1; return("_" + num) });
+        }
+      }
+      anchors[test]=1;
+      return(test);
+    }
+  
+    $(selectors.join(',')).filter(function(index) { return $(this).parent().attr("id") != 'header'; }).each(function () {
+  
+      var heading = $(this);
+      var idx = selectors.indexOf(heading.prop('tagName').toLowerCase());
+      var itr = 0;
+  
+      while (itr <= idx) {
+        if (jQuery.isEmptyObject(last_ptr[itr])) {
+          last_ptr[itr] = $('<ul>').addClass('nav');
+          if (itr === 0) {
+            base.append(last_ptr[itr])
+          } else {
+            if(last_ptr[itr-1].children('li').length === 0){
+              last_ptr[itr-1].append(last_ptr[itr]);
+            }
+            else {
+              last_ptr[itr - 1].children('li').last().append(last_ptr[itr]);
+            }
+          }
+        }
+        itr++;
+      }
+      var anchor = generate_anchor(heading.text());
+      heading.attr('id', anchor);
+      var a = $('<a>')
+      .text(heading.text())
+      .attr('href', '#' + anchor);
+  
+    var li = $('<li>')
+      .append(a);
+  
+    last_ptr[idx].append(li);
+    for (i = idx + 1; i < last_ptr.length; i++) {
+      last_ptr[i] = {};
+    }
+    });
+  }
+  /* run scripts when document is ready */
+  $(function() {
+    "use strict";
+  
+    var $window = $(window);
+    var $body = $(document.body);
+  
+    /* size of thumbnails */
+  
+    var hidden_types = ['source']
+    var output_types = ['output', 'message', 'warning', 'error']
+  
+    /* style tables */
+    $('table').addClass('table table-striped table-bordered table-hover table-condensed');
+  
+    $('pre code').each(function(i, e) {
+      hljs.highlightBlock(e);
+    });
+  
+    /* Magnific Popup */
+    $(".thumbnail").each(function(){
+      $(this).magnificPopup({
+        disableOn: 768,
+        closeOnContentClick: true,
+  
+        type: 'image',
+        items: {
+          src: $(this).find('img').attr('src'),
+        }
+      });
+    });
+  
+    function toggle_block(obj, show) {
+      var span = obj.find('span');
+      if(show === true){
+        span.removeClass('glyphicon-chevron-up').addClass('glyphicon-chevron-down');
+        obj.next('pre').slideDown();
+      }
+      else {
+        span.removeClass('glyphicon-chevron-down').addClass('glyphicon-chevron-up');
+        obj.next('pre').slideUp();
+      }
+    }
+  
+    function toggle_thumbnails(imgs, show){
+      if(show === true){
+        imgs.parents().show()
+        imgs.slideDown();
+      }
+      else {
+        imgs.slideUp(400, function(){ $(this).parent().hide(); });
+      }
+    }
+  
+    function global_toggle(obj){
+      var type = obj.attr('type');
+      var show = !obj.parent('li').hasClass('active');
+      if(show === true){
+        obj.parent('li').addClass('active');
+      }
+      else{
+        obj.parent('li').removeClass('active');
+      }
+      if(type == 'figure'){
+        toggle_thumbnails($('.thumbnail img'), show);
+      }
+      else {
+        $('.toggle.' + type).each(function() { toggle_block($(this), show); });
+      }
+    }
+  
+    /* onclick toggle next code block */
+    $('.toggle').click(function() {
+      var span = $(this).find('span');
+      toggle_block($(this), !span.hasClass('glyphicon-chevron-down'));
+      return false
+    })
+  
+    // global toggles
+    $('.toggle-global').click(function(){
+      var type = $(this).attr('type');
+      if(type === 'all-source'){
+          $('li a.source').each(function() {
+            global_toggle($(this));
+          });
+        }
+      else if(type === 'all-output'){
+        $.each(output_types, function(i, val){
+          console.log(val);
+          global_toggle($('li a.' + val));
+        });
+      }
+      else {
+        console.log($(this));
+        global_toggle($(this));
+      }
+      return false;
+    });
+    /* table of contents */
+    if($(['h1', 'h2', 'h3', 'h4'].join(',')).length > 0){
+      $('body > #wrap > .container > .row').append('<div class="col-md-2"><div id="toc" class="well sidebar sidenav affix hidden-print"/></div>');
+      $('#toc').generate_TOC();
+    }
+  
+    $.each(hidden_types, function(i, type) {
+      $('li[type=' + type + ']').each(function(){ global_toggle($(this)); });
+    });
+  
+    /* remove paragraphs with no content */
+    $('p:empty').remove();
+  
+    $body.scrollspy({
+      target: '.sidebar',
+    });
+  
+    /* theme switch */
+    $('.theme-switch').click(function(){
+      var css = $('link[title=' + $(this).attr('title') + ']');
+      $('#theme[rel=stylesheet]').attr('href', css.attr('href'));
+      $('.theme-switch').closest('li').removeClass('active');
+      $(this).closest('li').addClass('active');
+      return false;
+    });
+    /* code style switch */ //TODO use same function for both of these?
+    $('.highlight-switch').click(function(){
+      var css = $('link[title="' + $(this).attr('title') + '"]');
+      $('#highlight[rel=stylesheet]').attr('href', css.attr('href'));
+      $('.highlight-switch').closest('li').removeClass('active');
+      $(this).closest('li').addClass('active');
+      return false;
+    });
+  
+    //TODO refresh on show/hide
+    $window.on('load', function () {
+      $body.scrollspy('refresh');
+    })
+  
+  });
+  
+  </script>
+  <style>
+  /* Knitr_bootstrap styles */
+  #header {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  #wrap .container-fluid {
+    padding: 0;
+    overflow: hidden;
+  }
+  .toggle{
+    text-transform: capitalize;
+  }
+  
+  .toggle-global{
+    text-transform: capitalize;
+  }
+  
+  /* Sticky footer styles */
+  * {
+    margin:0;
+  }
+  html,
+  body {
+      height: 100%;
+      padding:0 !important;
+      /* The html and body elements cannot have any padding or margin. */
+      /*overflow-x: hidden;*/
+  }
+  
+  /* Wrapper for page content to push down footer */
+  #wrap {
+      min-height: 100%;
+      height: auto !important;
+      height: 100%;
+      /* Negative indent footer by it's height */
+      margin: 0 auto -120px;
+  }
+  
+  /* Set the fixed height of the footer here */
+  #push,
+  #footer {
+      height: 120px;
+  }
+  
+  #footer {
+    text-align: center;
+  }
+  
+  /* Top level subheader elements.  These are the first nested items underneath a header element. */
+  .header li {
+    font-size: 20px;
+  }
+  
+  /* Makes the font smaller for all subheader elements. */
+  .sub-header li {
+      font-size: 12px;
+  }
+  
+  button.thumbnails {
+    margin-left:0px;
+  }
+  
+  /*
+   * Side navigation
+   *
+   * Scrollspy and affixed enhanced navigation to highlight sections and secondary
+   * sections of docs content.
+   */
+  
+  /* By default it's not affixed in mobile views, so undo that */
+  .sidebar.affix {
+    position: static;
+  }
+  
+  /* First level of nav */
+  .sidenav {
+    margin-top: 30px;
+    margin-bottom: 30px;
+    padding-top:    10px;
+    padding-bottom: 10px;
+    border-radius: 5px;
+  }
+  
+  /* All levels of nav */
+  .sidebar .nav > li > a {
+    display: block;
+    padding: 5px 20px;
+  }
+  .sidebar .nav > li > a:hover,
+  .sidebar .nav > li > a:focus {
+    text-decoration: none;
+    border-right: 1px solid;
+  }
+  .sidebar .nav > .active > a,
+  .sidebar .nav > .active:hover > a,
+  .sidebar .nav > .active:focus > a {
+    font-weight: bold;
+    background-color: transparent;
+    border-right: 1px solid;
+  }
+  
+  /* Nav: second level (shown on .active) */
+  .sidebar .nav .nav {
+    display: none; /* Hide by default, but at >768px, show it */
+    margin-bottom: 8px;
+  }
+  .sidebar .nav .nav > li > a {
+    padding-top:    3px;
+    padding-bottom: 3px;
+    padding-left: 30px;
+    font-size: 90%;
+  }
+  
+  .sidebar .nav .nav .nav > li > a {
+    padding-left: 40px;
+  }
+  .sidebar .nav .nav .nav .nav > li > a {
+    padding-left: 50px;
+  }
+  
+  /* Show and affix the side nav when space allows it */
+  @media screen and (min-width: 992px) {
+    .sidebar .nav > .active > ul {
+      display: block;
+    }
+    /* Widen the fixed sidebar */
+    .sidebar.affix,
+    .sidebar.affix-bottom {
+      width: 213px;
+    }
+    .sidebar.affix-top,
+    .sidebar.affix {
+      position: fixed; /* Undo the static from mobile first approach */
+      top: 30px;
+    }
+    .sidebar.affix-bottom {
+      position: absolute; /* Undo the static from mobile first approach */
+    }
+    .sidebar.affix-bottom .sidenav,
+    .sidebar.affix .sidenav {
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+  }
+  @media screen and (min-width: 1200px) {
+    /* Widen the fixed sidebar again */
+    .sidebar.affix-bottom,
+    .sidebar.affix {
+      width: 263px;
+    }
+  }
+  
+  #toc {
+    padding: 10px 0px;
+    margin:0;
+    border:0;
+  }
+  
+  
+  .panel pre {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  button + pre {
+    margin: 0;
+    padding: 0;
+  }
+  pre code {
+    border-radius: 0;
+  }
+  /* Magnific Popup CSS */
+  .mfp-bg {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1042;
+    overflow: hidden;
+    position: fixed;
+    background: #0b0b0b;
+    opacity: 0.8;
+    filter: alpha(opacity=80); }
+  
+  .mfp-wrap {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1043;
+    position: fixed;
+    outline: none !important;
+    -webkit-backface-visibility: hidden; }
+  
+  .mfp-container {
+    text-align: center;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    padding: 0 8px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box; }
+  
+  .mfp-container:before {
+    content: '';
+    display: inline-block;
+    height: 100%;
+    vertical-align: middle; }
+  
+  .mfp-align-top .mfp-container:before {
+    display: none; }
+  
+  .mfp-content {
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0 auto;
+    text-align: left;
+    z-index: 1045; }
+  
+  .mfp-inline-holder .mfp-content,
+  .mfp-ajax-holder .mfp-content {
+    width: 100%;
+    cursor: auto; }
+  
+  .mfp-ajax-cur {
+    cursor: progress; }
+  
+  .mfp-zoom-out-cur,
+  .mfp-zoom-out-cur .mfp-image-holder .mfp-close {
+    cursor: -moz-zoom-out;
+    cursor: -webkit-zoom-out;
+    cursor: zoom-out; }
+  
+  .mfp-zoom {
+    cursor: pointer;
+    cursor: -webkit-zoom-in;
+    cursor: -moz-zoom-in;
+    cursor: zoom-in; }
+  
+  .mfp-auto-cursor .mfp-content {
+    cursor: auto; }
+  
+  .mfp-close,
+  .mfp-arrow,
+  .mfp-preloader,
+  .mfp-counter {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none; }
+  
+  .mfp-loading.mfp-figure {
+    display: none; }
+  
+  .mfp-hide {
+    display: none !important; }
+  
+  .mfp-preloader {
+    color: #cccccc;
+    position: absolute;
+    top: 50%;
+    width: auto;
+    text-align: center;
+    margin-top: -0.8em;
+    left: 8px;
+    right: 8px;
+    z-index: 1044; }
+  
+  .mfp-preloader a {
+    color: #cccccc; }
+  
+  .mfp-preloader a:hover {
+    color: white; }
+  
+  .mfp-s-ready .mfp-preloader {
+    display: none; }
+  
+  .mfp-s-error .mfp-content {
+    display: none; }
+  
+  button.mfp-close,
+  button.mfp-arrow {
+    overflow: visible;
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+    -webkit-appearance: none;
+    display: block;
+    padding: 0;
+    z-index: 1046;
+    -webkit-box-shadow: none;
+    box-shadow: none; }
+  
+  button::-moz-focus-inner {
+    padding: 0;
+    border: 0; }
+  
+  .mfp-close {
+    width: 44px;
+    height: 44px;
+    line-height: 44px;
+    position: absolute;
+    right: 0;
+    top: 0;
+    text-decoration: none;
+    text-align: center;
+    opacity: 0.65;
+    padding: 0 0 18px 10px;
+    color: white;
+    font-style: normal;
+    font-size: 28px;
+    font-family: Arial, Baskerville, monospace; }
+    .mfp-close:hover, .mfp-close:focus {
+      opacity: 1; }
+    .mfp-close:active {
+      top: 1px; }
+  
+  .mfp-close-btn-in .mfp-close {
+    color: #333333; }
+  
+  .mfp-image-holder .mfp-close,
+  .mfp-iframe-holder .mfp-close {
+    color: white;
+    right: -6px;
+    text-align: right;
+    padding-right: 6px;
+    width: 100%; }
+  
+  .mfp-counter {
+    position: absolute;
+    top: 0;
+    right: 0;
+    color: #cccccc;
+    font-size: 12px;
+    line-height: 18px; }
+  
+  .mfp-arrow {
+    position: absolute;
+    opacity: 0.65;
+    margin: 0;
+    top: 50%;
+    margin-top: -55px;
+    padding: 0;
+    width: 90px;
+    height: 110px;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0); }
+  
+  .mfp-arrow:active {
+    margin-top: -54px; }
+  
+  .mfp-arrow:hover,
+  .mfp-arrow:focus {
+    opacity: 1; }
+  
+  .mfp-arrow:before, .mfp-arrow:after,
+  .mfp-arrow .mfp-b,
+  .mfp-arrow .mfp-a {
+    content: '';
+    display: block;
+    width: 0;
+    height: 0;
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin-top: 35px;
+    margin-left: 35px;
+    border: medium inset transparent; }
+  .mfp-arrow:after,
+  .mfp-arrow .mfp-a {
+    border-top-width: 13px;
+    border-bottom-width: 13px;
+    top: 8px; }
+  .mfp-arrow:before,
+  .mfp-arrow .mfp-b {
+    border-top-width: 21px;
+    border-bottom-width: 21px; }
+  
+  .mfp-arrow-left {
+    left: 0; }
+    .mfp-arrow-left:after,
+    .mfp-arrow-left .mfp-a {
+      border-right: 17px solid white;
+      margin-left: 31px; }
+    .mfp-arrow-left:before,
+    .mfp-arrow-left .mfp-b {
+      margin-left: 25px;
+      border-right: 27px solid #3f3f3f; }
+  
+  .mfp-arrow-right {
+    right: 0; }
+    .mfp-arrow-right:after,
+    .mfp-arrow-right .mfp-a {
+      border-left: 17px solid white;
+      margin-left: 39px; }
+    .mfp-arrow-right:before,
+    .mfp-arrow-right .mfp-b {
+      border-left: 27px solid #3f3f3f; }
+  
+  .mfp-iframe-holder {
+    padding-top: 40px;
+    padding-bottom: 40px; }
+  
+  .mfp-iframe-holder .mfp-content {
+    line-height: 0;
+    width: 100%;
+    max-width: 900px; }
+  
+  .mfp-iframe-scaler {
+    width: 100%;
+    height: 0;
+    overflow: hidden;
+    padding-top: 56.25%; }
+  
+  .mfp-iframe-scaler iframe {
+    position: absolute;
+    display: block;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+    background: black; }
+  
+  .mfp-iframe-holder .mfp-close {
+    top: -40px; }
+  
+  /* Main image in popup */
+  img.mfp-img {
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    display: block;
+    line-height: 0;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    padding: 40px 0 40px;
+    margin: 0 auto; }
+  
+  /* The shadow behind the image */
+  .mfp-figure:after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 40px;
+    bottom: 40px;
+    display: block;
+    right: 0;
+    width: auto;
+    height: auto;
+    z-index: -1;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+    background: #444444; }
+  
+  .mfp-figure {
+    line-height: 0; }
+  
+  .mfp-bottom-bar {
+    margin-top: -36px;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    cursor: auto; }
+  
+  .mfp-title {
+    text-align: left;
+    line-height: 18px;
+    color: #f3f3f3;
+    word-wrap: break-word;
+    padding-right: 36px; }
+  
+  .mfp-figure small {
+    color: #bdbdbd;
+    display: block;
+    font-size: 12px;
+    line-height: 14px; }
+  
+  .mfp-image-holder .mfp-content {
+    max-width: 100%; }
+  
+  .mfp-gallery .mfp-image-holder .mfp-figure {
+    cursor: pointer; }
+  
+  @media screen and (max-width: 800px) and (orientation: landscape), screen and (max-height: 300px) {
+    /**
+     * Remove all paddings around the image on small screen
+     */
+    .mfp-img-mobile .mfp-image-holder {
+      padding-left: 0;
+      padding-right: 0; }
+  
+    .mfp-img-mobile img.mfp-img {
+      padding: 0; }
+  
+    /* The shadow behind the image */
+    .mfp-img-mobile .mfp-figure:after {
+      top: 0;
+      bottom: 0; }
+  
+    .mfp-img-mobile .mfp-bottom-bar {
+      background: rgba(0, 0, 0, 0.6);
+      bottom: 0;
+      margin: 0;
+      top: auto;
+      padding: 3px 5px;
+      position: fixed;
+      -webkit-box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      box-sizing: border-box; }
+  
+    .mfp-img-mobile .mfp-bottom-bar:empty {
+      padding: 0; }
+  
+    .mfp-img-mobile .mfp-counter {
+      right: 5px;
+      top: 3px; }
+  
+    .mfp-img-mobile .mfp-close {
+      top: 0;
+      right: 0;
+      width: 35px;
+      height: 35px;
+      line-height: 35px;
+      background: rgba(0, 0, 0, 0.6);
+      position: fixed;
+      text-align: center;
+      padding: 0; }
+  
+    .mfp-img-mobile .mfp-figure small {
+      display: inline;
+      margin-left: 5px; } }
+  @media all and (max-width: 900px) {
+    .mfp-arrow {
+      -webkit-transform: scale(0.75);
+      transform: scale(0.75); }
+  
+    .mfp-arrow-left {
+      -webkit-transform-origin: 0;
+      transform-origin: 0; }
+  
+    .mfp-arrow-right {
+      -webkit-transform-origin: 100%;
+      transform-origin: 100%; }
+  
+    .mfp-container {
+      padding-left: 6px;
+      padding-right: 6px; } }
+  .mfp-ie7 .mfp-img {
+    padding: 0; }
+  .mfp-ie7 .mfp-bottom-bar {
+    width: 600px;
+    left: 50%;
+    margin-left: -300px;
+    margin-top: 5px;
+    padding-bottom: 5px; }
+  .mfp-ie7 .mfp-container {
+    padding: 0; }
+  .mfp-ie7 .mfp-content {
+    padding-top: 44px; }
+  .mfp-ie7 .mfp-close {
+    top: 0;
+    right: 0;
+    padding-top: 0; }
+  
+  //Magnific overrides
+  .mfp-image img{
+    background: white;
+  }
+  .mfp-figure:after {
+    background: white;
+  }
+  
+  /*
+   * Off Canvas navbar toggle right
+   * --------------------------------------------------
+   */
+  
+  @media screen and (max-width: 768px) {
+    .row-offcanvas .collapsing {
+    -webkit-transition: none 0;
+      -moz-transition: none 0;
+      transition: none 0;
+    }
+   .row-offcanvas .navbar {
+    position: absolute;
+    z-index: 2;
+      right:0;
+      height:100%;
+      width:55px;
+      border:0;
+      background-color:transparent;
+    }
+    .row-offcanvas .navbar-toggle {
+      margin-right: 5px;
+      margin-left: 5px;
+    }
+    .row-offcanvas {
+      position: relative;
+    }
+    .row-offcanvas-right.active .navbar {
+    position: absolute;
+    z-index: 2;
+      right: -28.4%;
+      width:40%;
+      background-color:#eee;
+      border:0 solid #ddd;
+      border-left-width:1px;
+    }
+    .row-offcanvas-right.active {
+      left: -30%;
+    }
+    .row-offcanvas-right.active .navbar-collapse {
+      position: relative;
+      width: 100%;
+    }
+    .row-offcanvas .content {
+    /*width:calc(100% - 60px);*/
+    }
+  }
+  </style>
+</head>
+<body>
+<div id="wrap">
+<div class="container">
+<div class="row row-offcanvas row-offcanvas-right">
+<div class="contents col-xs-12 col-md-10">
+<h1>549 lab1</h1>
+<p>ECON 549 Write a program in R that allows one to calculate the monthly mortgage payment given a certain interest rate, loan amount (i.e., mortgage) and amortization period. Assume the interest rate is compounded semi-annually. Using the program, calculate the monthly pension one would get if she had $1 million in a retirement fund at age 65, plans to live 25 years, and assumes a real rate of interest of 2.5% compounded semi-annually.</p>
+<h2>Set up model</h2>
+<p>The real rate of interest of 2.5% is compounded semi-annually, so the rate of interest we use to calculate the interest is 1.25% semi-annually. We can set the time interval is half year, then every time period, we draw <code>6 * monthly pension</code> and get the interest from the average principle during the time period <br /><span class="math">$$\frac{1}{2} * ( p_{t} + (p_{t} - 6*m ))$$</span><br />.</p>
+<p>The first difference equation to model this process will be:</p>
+<p><br /><span class="math">$$ p_{t+1} = \frac{1}{2} * ( p_{t} + (p_{t} - 6*m )) * (1 + 0.0125) $$</span><br /></p>
+<p>where p is the principle, m is the monthly pension.</p>
+<p>We can use the numerical method to get the solution for the equation since we have</p>
+<p><br /><span class="math"><em>p</em><sub>50</sub> = 0</span><br /></p>
+<div class="row">
+<button class="source R toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> R source
+</button><pre style=""><code class="source r"># principle is 1 million
+p = 1000000
+# initial monthly pension
+m = 8890
+# a vector to hold the number for plot 
+#principle <- {}
+#principle <- c()
+principle <- vector()
+while(p>0){
+        # reset principle back to 1 million for 
+        p = 1000000
+        for(i in 1:(2*25)){
+                principle[i]= p
+                p = (( p+ (p - 6*m))/2) * (1 + 0.0125)  
+                
+        }
+m = m+1
+
+}</code></pre>
+</div>
+<p>The monthly pension is <strong>8896</strong> and the <strong>-64.5715715</strong> money left. It is not perfect solution since we use the numerical method to get the solution. There is room to improve the solution.</p>
+<h2>How the principle evolves during the time?</h2>
+<div class="row">
+<button class="source R toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> R source
+</button><pre style=""><code class="source r">#library(ggplot2)
+
+plot(principle, type = "l", col = "brown", lwd = 2, xlab = "Time",ylab = "Principle", main = "Monthly decreasing of the principle")
+abline(h=m, col="green", lwd=2)
+legend(x="topright", legend=c("Principle", "Monthly pension"), 
+       lty=1, lwd=2, col=c("brown","green"))</code></pre>
+<div class="row">
+<div class="col-md-offset-3 col-md-6">
+<a href="#" class="thumbnail"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAfgAAAGwCAMAAABy/YdMAAAAulBMVEX9/v0AAAAAADkAAGUAOTkAOY8AZrUA/wA5AAA5ADk5AGU5OQA5OWU5OY85ZmU5Zo85ZrU5j485j9plAABlADllAGVlOQBlOTllOY9lZgBlZjllZmVlZrVlj49ltbVltf2POQCPOTmPOWWPZgCPZo+PjzmPj2WPtY+P27WP29qP2/2lKiq1ZgC1Zjm1tWW124+1/rW1/tq1/v3ajznaj2Xa24/a/rXa/tra/v39tWX924/9/rX9/tr9/v3A8r/QAAAAPnRSTlP/////////////////////////////////////////////////////////////////////////////////ALr7cTYAAAAJcEhZcwAACxIAAAsSAdLdfvwAABEQSURBVHic7Z0Pm+K2EYfrvSzhrkmbsrk0Tdqym7b5s0dyydJLD4O//9eqJAtjwMaSNZalmd/7PHfsskYWehlJtmXmDxUQyR/mrgCYB4gXCsQLBeKFAvFCgXihQLxQIF4oEC8UiBcKxAsF4oUC8UKBeKFAvFAgXigQLxSIFwrECwXihQLxQoF4oUC8UCBeKBAvlLTEHx6LYqUet0Vx/7Frg81abfPqxfy8f7A/tNg/dL/uFl3lXFIui7vnqxp4l3r2pMt+pyM18Xd/VOa0/06Bm2IC8S7oHV/XIAyIP6HEf6NaY//wp6UWqAJfdwCqoX8pilcv+vNQLNRv75eF2erVb1rBznQSdXfxz4fj69b2GbWBLlUH7PHpnXrU8avC2JbzctyFec2rX5uPT10Ds2P91EUNTnuqTrW0u/vxstSrXdXiWyVEJTnxPyzXysw/tPhNoVnUzW0avPlfP60bbqsabVN3wvb55nXW1/EDc//x+PT+od7u9Gg3afb1ydKK37R23BZvN272dLb/euvfr0pVNWntqt7vWQlRSU78jw+raqsi6v5juVRG9w93z6qpVurDYJTqjlb9Vi7rhiuXi2PHWy7V47bQrzOjhf6jadm1esWiqpqn9cb1a2u91ka9i6aUukhbg8uu3tbgrEjzrPow2d1dl6pe2jypt2vqQDR0+JGc+OfN/f8e7z+oBtnp9lMS1vrZevSum93+VreiCq2Fee2ubm79OsPd82kM0H1C83RlYl6HX9Hqf22h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" alt="plot of chunk unnamed-chunk-1" /> </a>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="navbar navbar-fixed-bottom navbar-inverse">
+<div class="container">
+<div class="navbar-header">
+<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-responsive-collapse">
+<span class="icon-bar"></span> <span class="icon-bar"></span> <span class="icon-bar"></span>
+</button>
+</div>
+<div id="bottom-navbar" class="navbar-collapse collapse navbar-responsive-collapse">
+<ul class="nav navbar-nav navbar-right"><li class="nav"><p class="navbar-text">
+Toggle
+</p></li>
+<li class="dropup">
+<a href="#" class="dropdown-toggle" data-toggle="dropdown">Code <b class="caret"></b></a>
+<ul class="dropdown-menu"><li class="dropdown-header">
+Languages
+</li>
+<li class="active">
+<a href="#" class="toggle-global source R" type="source.R">R</a>
+</li>
+<li >
+<a href="#" type="all-source" class="toggle-global">All</a>
+</li></ul></li>
+
+<li class="active">
+<a href="#" type="figure" class="toggle-global">Figures</a>
+</li></ul>
+</div>
+</div>
+</div>
+</div>
+<div id="push">
+
+</div>
+<div id="footer">
+<div class="container">
+<p class="text-muted" id="credit">
+Styled with <a href="https://github.com/jimhester/knitrBootstrap">knitrBootstrap</a>
+</p>
+</div>
+</div>
+<link rel="stylesheet" id="theme" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" media="screen"></link><link rel="stylesheet" id="highlight" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/7.3/styles/default.min.css" media="screen"></link>
+</div>
+</body>
+</html>
